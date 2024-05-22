@@ -48,10 +48,10 @@ class UniversalAccount:
         value = random_value()
 
         json_data = {"jsonrpc": "2.0","chainId": 11155420,"method": "universal_createCrossChainUserOperation","params": [
-        { "name": "UNIVERSAL", "version": "1.0.0", "ownerAddress": "0xa63df455ebad62c74ed27037f452d3317ac6479e"},
+        { "name": "UNIVERSAL", "version": "1.0.0", "ownerAddress": self.client.account_address},
         [
             {
-                "from": "0xb431e7376b868F8D48f336D3B2C6fB617D6792f1",
+                "from": self.client.aaAddress,
                 "to": self.client.account_address,
                 "value": value,
                 "type": "0x2",
@@ -75,7 +75,7 @@ class UniversalAccount:
         
         params = {'chainId': '11155420', 'projectUuid': project_uuid_for_send, 'projectKey': project_key_for_send}
         json_data = {'jsonrpc': '2.0', 'id': 0, 'method': 'particle_aa_createMultiChainUnsignedData',
-                    'params': [{'name': 'UNIVERSAL', 'version': '1.0.0', 'ownerAddress': '0xa63dF455EBaD62c74eD27037F452d3317AC6479E', }, {
+                    'params': [{'name': 'UNIVERSAL', 'version': '1.0.0', 'ownerAddress': self.client.account_address }, {
                         'multiChainConfigs': [{'chainId': user_ops[0]['chainId'], 'userOpHash': user_ops[0]['userOpHash'],
                                                 'validUntil': timestamp + 600, 'validAfter': timestamp - 600, },
                                             {'chainId': user_ops[1]['chainId'], 'userOpHash': user_ops[1]['userOpHash'],

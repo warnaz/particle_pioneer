@@ -61,7 +61,8 @@ class BearerToken:
         )
     
         token = response['token']
+        aaAddress = response['aaAddress']
         logger.success(f"Bearer Token: {token}")
 
-        return token
+        return token, aaAddress
  

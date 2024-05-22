@@ -5,8 +5,8 @@ from eth_account import Account
 from loguru import logger
 from client import Client
 from utils.services import get_bearer_token, get_captcha_key
-from config import project_uuid, project_client_key, project_app_uuid
-from utils.helpers import get_mac_info, get_params, get_send_operation_json, get_signature, sha256
+from config import project_uuid, project_client_key, MAC_KEY, DEVICE_ID
+from utils.helpers import get_mac_info, get_params, get_send_operation_json, get_signature
 from eth_account.messages import encode_defunct
 
 
@@ -14,11 +14,12 @@ class DailyTask:
     def __init__(self, client: Client) -> None:
         self.client = client
 
-    async def daily_check_in(self, mac_key = "iEQmWtT1wQBXTdgaP5XyQRqijyP2CfYdzWy6x2bY", device_id = '65b4e14d-7150-441b-8ff3-f83d630e7287'):
+    async def daily_check_in(self):
         logger.info("Start to check in")
+        mac_key, device_id = MAC_KEY, DEVICE_ID
 
         account = Account.from_key(self.client.private_key)
-        token = await get_bearer_token(self.client)
+        token, _ = await get_bearer_token(self.client)
 
         random_str, timestamp = str(uuid.uuid4()), int(time.time())
         

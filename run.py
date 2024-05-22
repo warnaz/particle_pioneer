@@ -5,6 +5,7 @@ from loguru import logger
 from functions import send_to, check_in
 from client import Client
 from utils.helpers import get_address_by_key, get_keys_proxies
+from utils.get_bearer_token import BearerToken
 from config import DELAY_BETWEEN_ACCOUNTS, DELAY_BETWEEN_SEND_TRANSACTION
 from questionary import Choice, select
 from termcolor import cprint
@@ -13,10 +14,9 @@ from termcolor import cprint
 logger.add("data/logs/logging.log", rotation="500 MB")  
 
 
-async def run(module, proxy: str, private_key: str, address: str):
+async def run(module, client: Client):
     logger.info("RUN")
     try:
-        client = Client(proxy=proxy, private_key=private_key, address=address)
         await module(client)
     except Exception as e:
         raise e
@@ -25,17 +25,21 @@ async def run(module, proxy: str, private_key: str, address: str):
 
 
 async def run_module_multiple_times(module, proxy, key, address):
+    client = Client(proxy=proxy, private_key=key, address=address)
+
     if module == send_to:
         count_loop = 100
+        _, aaAddress = await BearerToken(client).get_bearer_token()
+        client.aaAddress = aaAddress
     else:
         count_loop = 1
 
     for _ in range(count_loop):  
+        await run(module, client)
+
         delay = random.randint(*DELAY_BETWEEN_SEND_TRANSACTION)
         logger.info(f"Delay between transactions: {delay} seconds")
         await asyncio.sleep(delay)
-        
-        await run(module=module, proxy=proxy, private_key=key, address=address)
 
 
 async def run_modules(module):
