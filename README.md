@@ -7,6 +7,7 @@
 `git clone https://github.com/warnaz/particle_pioneer.git`
 
 Для установки необходимых библиотек, выполните следующую команду:
+
 `pip install -r requirements.txt`
 
 
