@@ -5,7 +5,7 @@ import uuid
 from loguru import logger
 from client import Client
 from utils.services import get_captcha_key
-from utils.helpers import get_headers, get_signature
+from utils.helpers import get_headers, get_send_operation_json, get_signature
 from utils.format_number import random_value
 from config import project_uuid_for_send, project_key_for_send
 from eth_account.messages import encode_defunct
@@ -67,7 +67,7 @@ class UniversalAccount:
         response = await self.client.make_request(
             method='POST', url=create_cross_chain_url, headers=headers, json=json_data)
 
-        logger.debug(response) 
+        logger.debug(response)
         logger.info("Get user op hash: " + response['result']['userOps'][0]['userOpHash'])
 
         user_ops = response['result']['userOps']
@@ -96,38 +96,18 @@ class UniversalAccount:
 
         signature1, signature2 = get_signature(response['result'], user_ops[0]['userOp']['signature'], evm_signature)
         
-        captcha_key = await get_captcha_key(client=self.client)
+        capcha_key = await get_captcha_key(client=self.client)
 
         logger.info("Get captcha key")
 
         headers = get_headers()
-        json_data = {
-            'jsonrpc': '2.0', 
-            'chainId': 11155420, 
-            'method': 'universal_sendCrossChainUserOperation',
-            'cfTurnstileResponse': captcha_key,
-            'params': [[{
-                'sender': user_ops[0]['userOp']['sender'], 'nonce': user_ops[0]['userOp']['nonce'],
-                'initCode': user_ops[0]['userOp']['initCode'], 'callData': user_ops[0]['userOp']['callData'],
-                'paymasterAndData': user_ops[0]['userOp']['paymasterAndData'], 'signature': signature1,
-                'preVerificationGas': user_ops[0]['userOp']['preVerificationGas'],
-                'verificationGasLimit': user_ops[0]['userOp']['verificationGasLimit'],
-                'callGasLimit': user_ops[0]['userOp']['callGasLimit'],
-                'maxFeePerGas': user_ops[0]['userOp']['maxFeePerGas'],
-                'maxPriorityFeePerGas': user_ops[0]['userOp']['maxPriorityFeePerGas'],
-                'chainId': user_ops[0]['chainId']},
-                {'sender': user_ops[1]['userOp']['sender'], 'nonce': user_ops[1]['userOp']['nonce'],
-                'initCode': user_ops[1]['userOp']['initCode'], 'callData': user_ops[1]['userOp']['callData'],
-                'callGasLimit': user_ops[1]['userOp']['callGasLimit'],
-                'verificationGasLimit': user_ops[1]['userOp']['verificationGasLimit'],
-                'preVerificationGas': user_ops[1]['userOp']['preVerificationGas'],
-                'maxFeePerGas': user_ops[1]['userOp']['maxFeePerGas'],
-                'maxPriorityFeePerGas': user_ops[1]['userOp']['maxPriorityFeePerGas'],
-                'paymasterAndData': user_ops[1]['userOp']['paymasterAndData'], 'chainId': user_ops[1]['chainId'],
-                'signature': signature2}]]}
+
+        json_data = get_send_operation_json(capcha_key=capcha_key, user_ops=user_ops, signature1=signature1, signature2=signature2)
 
         response = await self.client.make_request(
             method='POST', url='https://universal-api.particle.network/', headers=headers, json=json_data)
         
-        logger.success(f"Successful: {response}")
-
+        if response.get('error', None):
+            logger.error(f"Error: {response['error']['message']}")
+        else:
+            logger.success(f"Success: {response}")

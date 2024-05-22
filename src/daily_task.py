@@ -6,7 +6,7 @@ from loguru import logger
 from client import Client
 from utils.services import get_bearer_token, get_captcha_key
 from config import project_uuid, project_client_key, project_app_uuid
-from utils.helpers import get_signature, sha256
+from utils.helpers import get_mac_info, get_params, get_send_operation_json, get_signature, sha256
 from eth_account.messages import encode_defunct
 
 
@@ -22,23 +22,7 @@ class DailyTask:
 
         random_str, timestamp = str(uuid.uuid4()), int(time.time())
         
-        mac_info = {"timestamp": timestamp, "random_str": random_str,
-                    "device_id": device_id, "sdk_version": "web_1.0.0",
-                    "project_uuid": project_uuid,
-                    "project_client_key": project_client_key,
-                    "project_app_uuid": project_app_uuid,
-                    "mac_key": mac_key}
-
-        params = {
-            'timestamp': timestamp,
-            'random_str': random_str,
-            'device_id': device_id,
-            'sdk_version': 'web_1.0.0',
-            'project_uuid': project_uuid,
-            'project_client_key': project_client_key,
-            'project_app_uuid': project_app_uuid,
-            'mac': sha256(dict(sorted(mac_info.items())))
-        }
+        params = get_params(timestamp, random_str, device_id, mac_key)
 
         headers = {
             'accept': 'application/json, text/plain, */*',
@@ -147,32 +131,9 @@ class DailyTask:
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
         }
 
-        captcha_key = await get_captcha_key(self.client)
+        capcha_key = await get_captcha_key(self.client)
 
-        json_data = {
-            'jsonrpc': '2.0', 
-            'chainId': 11155420, 
-            'method': 'universal_sendCrossChainUserOperation',
-            'cfTurnstileResponse': captcha_key,
-            'params': [[{
-                'sender': user_ops[0]['userOp']['sender'], 'nonce': user_ops[0]['userOp']['nonce'],
-                'initCode': user_ops[0]['userOp']['initCode'], 'callData': user_ops[0]['userOp']['callData'],
-                'paymasterAndData': user_ops[0]['userOp']['paymasterAndData'], 'signature': signature1,
-                'preVerificationGas': user_ops[0]['userOp']['preVerificationGas'],
-                'verificationGasLimit': user_ops[0]['userOp']['verificationGasLimit'],
-                'callGasLimit': user_ops[0]['userOp']['callGasLimit'],
-                'maxFeePerGas': user_ops[0]['userOp']['maxFeePerGas'],
-                'maxPriorityFeePerGas': user_ops[0]['userOp']['maxPriorityFeePerGas'],
-                'chainId': user_ops[0]['chainId']},
-                {'sender': user_ops[1]['userOp']['sender'], 'nonce': user_ops[1]['userOp']['nonce'],
-                'initCode': user_ops[1]['userOp']['initCode'], 'callData': user_ops[1]['userOp']['callData'],
-                'callGasLimit': user_ops[1]['userOp']['callGasLimit'],
-                'verificationGasLimit': user_ops[1]['userOp']['verificationGasLimit'],
-                'preVerificationGas': user_ops[1]['userOp']['preVerificationGas'],
-                'maxFeePerGas': user_ops[1]['userOp']['maxFeePerGas'],
-                'maxPriorityFeePerGas': user_ops[1]['userOp']['maxPriorityFeePerGas'],
-                'paymasterAndData': user_ops[1]['userOp']['paymasterAndData'], 'chainId': user_ops[1]['chainId'],
-                'signature': signature2}]]}
+        json_data = get_send_operation_json(capcha_key=capcha_key, user_ops=user_ops, signature1=signature1, signature2=signature2)
 
         response = await self.client.make_request(
             method="POST", 
@@ -195,24 +156,8 @@ class DailyTask:
         }
 
         random_str, timestamp = str(uuid.uuid4()), int(time.time())
-        mac_info = {"timestamp": timestamp, "random_str": random_str,
-                    "device_id": device_id, "sdk_version": "web_1.0.0",
-                    "project_uuid": project_uuid,
-                    "project_client_key": project_client_key,
-                    "project_app_uuid": project_app_uuid,
-                    "mac_key": mac_key
-                }
 
-        params = {
-            'timestamp': timestamp,
-            'random_str': random_str,
-            'device_id': device_id,
-            'sdk_version': 'web_1.0.0',
-            'project_uuid': project_uuid,
-            'project_client_key': project_client_key,
-            'project_app_uuid': project_app_uuid,
-            'mac': sha256(dict(sorted(mac_info.items())))
-        }
+        params = get_params(timestamp, random_str, device_id, mac_key)
 
         response = await self.client.make_request(
             method="POST", 
@@ -224,22 +169,9 @@ class DailyTask:
         logger.info(f"Get check point: {response}")
 
         random_str, timestamp = str(uuid.uuid4()), int(time.time())
-        mac_info = {"timestamp": timestamp, "random_str": random_str,
-                    "device_id": device_id, "sdk_version": "web_1.0.0",
-                    "project_uuid": project_uuid,
-                    "project_client_key": project_client_key,
-                    "project_app_uuid": project_app_uuid,
-                    "mac_key": mac_key}
-        params = {
-            'timestamp': timestamp,
-            'random_str': random_str,
-            'device_id': device_id,
-            'sdk_version': 'web_1.0.0',
-            'project_uuid': project_uuid,
-            'project_client_key': project_client_key,
-            'project_app_uuid': project_app_uuid,
-            'mac': sha256(dict(sorted(mac_info.items())))
-        }
+
+        params = get_params(timestamp, random_str, device_id, mac_key)
+
         response = await self.client.make_request(
             method="POST", 
             url='https://pioneer-api.particle.network/streaks/check_streak', 
@@ -250,22 +182,8 @@ class DailyTask:
         logger.info(f"Get streak: {response}")
 
         random_str, timestamp = str(uuid.uuid4()), int(time.time())
-        mac_info = {"timestamp": timestamp, "random_str": random_str,
-                    "device_id": device_id, "sdk_version": "web_1.0.0",
-                    "project_uuid": project_uuid,
-                    "project_client_key": project_client_key,
-                    "project_app_uuid": project_app_uuid,
-                    "mac_key": mac_key}
-        params = {
-            'timestamp': timestamp,
-            'random_str': random_str,
-            'device_id': device_id,
-            'sdk_version': 'web_1.0.0',
-            'project_uuid': project_uuid,
-            'project_client_key': project_client_key,
-            'project_app_uuid': project_app_uuid,
-            'mac': sha256(dict(sorted(mac_info.items())))
-        }
+
+        params = get_params(timestamp, random_str, device_id, mac_key)
 
         response = await self.client.make_request(
             method="GET", 

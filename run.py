@@ -42,6 +42,13 @@ async def run_modules(module):
     tasks = []
     keys, proxies = get_keys_proxies()
 
+    if len(keys) != len(proxies):
+        logger.error("Количество ключей и проксей должно быть одинаковое!")
+        return
+    elif len(keys) == 0:
+        logger.error("Количество ключей и проксей должно быть больше нуля!")
+        return
+
     for key, proxy in zip(keys, proxies):
         delay = random.randint(*DELAY_BETWEEN_ACCOUNTS)
         logger.info(f"Delay between accounts: {delay} seconds")

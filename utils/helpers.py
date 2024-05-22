@@ -2,6 +2,7 @@ import hashlib
 import json
 from eth_abi import encode
 from eth_account import Account
+from config import project_uuid, project_client_key, project_app_uuid
 
 
 def get_headers():
@@ -19,6 +20,28 @@ def get_headers():
     }
       
     return headers
+
+
+def get_mac_info(timestamp, random_str, device_id, mac_key):
+    return {"timestamp": timestamp, "random_str": random_str,
+                    "device_id": device_id, "sdk_version": "web_1.0.0",
+                    "project_uuid": project_uuid,
+                    "project_client_key": project_client_key,
+                    "project_app_uuid": project_app_uuid,
+                    "mac_key": mac_key}
+
+
+def get_params(timestamp, random_str, device_id, mac_key):
+    return {
+            'timestamp': timestamp,
+            'random_str': random_str,
+            'device_id': device_id,
+            'sdk_version': 'web_1.0.0',
+            'project_uuid': project_uuid,
+            'project_client_key': project_client_key,
+            'project_app_uuid': project_app_uuid,
+            'mac': sha256(dict(sorted(get_mac_info(timestamp, random_str, device_id, mac_key).items())))
+        }
 
 
 def sha256(data):
@@ -64,3 +87,31 @@ def get_keys_proxies():
         proxies = [line.strip() for line in f.readlines()]
     
     return keys, proxies
+
+
+
+def get_send_operation_json(capcha_key, user_ops, signature1, signature2):
+        return {
+            'jsonrpc': '2.0', 
+            'chainId': 11155420, 
+            'method': 'universal_sendCrossChainUserOperation',
+            'cfTurnstileResponse': capcha_key,
+            'params': [[{
+                'sender': user_ops[0]['userOp']['sender'], 'nonce': user_ops[0]['userOp']['nonce'],
+                'initCode': user_ops[0]['userOp']['initCode'], 'callData': user_ops[0]['userOp']['callData'],
+                'paymasterAndData': user_ops[0]['userOp']['paymasterAndData'], 'signature': signature1,
+                'preVerificationGas': user_ops[0]['userOp']['preVerificationGas'],
+                'verificationGasLimit': user_ops[0]['userOp']['verificationGasLimit'],
+                'callGasLimit': user_ops[0]['userOp']['callGasLimit'],
+                'maxFeePerGas': user_ops[0]['userOp']['maxFeePerGas'],
+                'maxPriorityFeePerGas': user_ops[0]['userOp']['maxPriorityFeePerGas'],
+                'chainId': user_ops[0]['chainId']},
+                {'sender': user_ops[1]['userOp']['sender'], 'nonce': user_ops[1]['userOp']['nonce'],
+                'initCode': user_ops[1]['userOp']['initCode'], 'callData': user_ops[1]['userOp']['callData'],
+                'callGasLimit': user_ops[1]['userOp']['callGasLimit'],
+                'verificationGasLimit': user_ops[1]['userOp']['verificationGasLimit'],
+                'preVerificationGas': user_ops[1]['userOp']['preVerificationGas'],
+                'maxFeePerGas': user_ops[1]['userOp']['maxFeePerGas'],
+                'maxPriorityFeePerGas': user_ops[1]['userOp']['maxPriorityFeePerGas'],
+                'paymasterAndData': user_ops[1]['userOp']['paymasterAndData'], 'chainId': user_ops[1]['chainId'],
+                'signature': signature2}]]}
