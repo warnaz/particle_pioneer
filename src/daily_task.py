@@ -51,9 +51,13 @@ class DailyTask:
         response = session.post('https://pioneer-api.particle.network/streaks/streak_tx', params=params,
                         headers=headers).json()            
 
-        if response["message"] == "Already checked-in":
+        response_message = response.get("message", None)
+        if response_message == "Already checked-in":
             logger.info(f"Already checked-in for {self.client.account_address}")
             return 
+        elif response_message == "Invalid token":
+            logger.error(f"Invalid token for {self.client.account_address}")
+            return
 
         logger.info(response)
 

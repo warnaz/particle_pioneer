@@ -43,7 +43,7 @@ class BearerToken:
         mac_info = {"timestamp": timestamp, "random_str": random_str, "device_id": device_id,
                     "sdk_version": "web_1.0.0",
                     "project_uuid": project_uuid, "project_client_key": project_client_key,
-                    "mac_key": "5706dd1db5aabc45c649ecc01fdac97100de8e8655715d810d0fb2080e6cea24",
+                    "mac_key": "5706dd1db5aabc45c649ecc01fdac97100de8e8655715d810d0fb2080e6cea24", # TODO mac_key для каждого кошелька
                     "project_app_uuid": project_app_uuid, "loginMethod": "evm_wallet", "loginSource": "metamask",
                     "loginInfo": {"address": self.client.account_address.lower(), "signature": signature}}
 
@@ -60,8 +60,8 @@ class BearerToken:
             json=json_data
         )
     
-        token = response['token']
-        aaAddress = response['aaAddress']
+        token = response.get('token', None)
+        aaAddress = response.get('aaAddress', None)
         logger.success(f"Bearer Token: {token}")
 
         return token, aaAddress

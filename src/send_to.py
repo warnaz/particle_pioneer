@@ -4,6 +4,7 @@ import uuid
 
 from loguru import logger
 from client import Client
+from utils.decorators import helper
 from utils.services import get_captcha_key
 from utils.helpers import get_headers, get_send_operation_json, get_signature
 from utils.format_number import random_value
@@ -15,8 +16,9 @@ class UniversalAccount:
     def __init__(self, client: Client) -> None:
         self.client = client
 
+    @helper
     async def send_from_universal_acccount(self):
-        logger.info("Start to send from universal account")
+        logger.info(f"Start to send from universal account for : {self.client.account_address} - {self.client.aaAddress}")
 
         create_cross_chain_url = 'https://universal-api.particle.network/'
         url = 'https://rpc.particle.network/evm-chain?chainId=11155420&projectUuid=91bf10e7-5806-460d-95af-bef2a3122e12&projectKey=cOqbmrQ1YfOuBMo0KKDtd15bG1ENRoxuUa7nNO76&method=particle_suggestedGasFee'
@@ -108,6 +110,7 @@ class UniversalAccount:
             method='POST', url='https://universal-api.particle.network/', headers=headers, json=json_data)
         
         if response.get('error', None):
-            logger.error(f"Error: {response['error']['message']}")
+            message = response['error']['message'] + response['error']['extraData']
+            logger.error(f"Error: {message}")
         else:
             logger.success(f"Success: {response}")

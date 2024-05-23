@@ -14,28 +14,32 @@ from termcolor import cprint
 logger.add("data/logs/logging.log", rotation="500 MB")  
 
 
-async def run(module, client: Client):
+async def run(module, proxy, key, address, client: Client = None):
     logger.info("RUN")
-    try:
-        await module(client)
-    except Exception as e:
-        raise e
-    finally:
-        await client.session.close()
+    # try:
+    # await module(client)
+    await module(proxy, key, address)
+    # finally:
+    #     await client.session.close()
 
 
 async def run_module_multiple_times(module, proxy, key, address):
-    client = Client(proxy=proxy, private_key=key, address=address)
+    delay = random.randint(*DELAY_BETWEEN_ACCOUNTS)
+    logger.info(f"Delay between accounts: {delay} seconds")
+    await asyncio.sleep(delay)
+
+    # client = Client(proxy=proxy, private_key=key, address=address)
 
     if module == send_to:
         count_loop = 100
-        _, aaAddress = await BearerToken(client).get_bearer_token()
-        client.aaAddress = aaAddress
+        # _, aaAddress = await BearerToken(client).get_bearer_token()
+        # client.aaAddress = aaAddress
     else:
         count_loop = 1
 
     for _ in range(count_loop):  
-        await run(module, client)
+        # await run(module, client)
+        await run(module, proxy, key, address)
 
         delay = random.randint(*DELAY_BETWEEN_SEND_TRANSACTION)
         logger.info(f"Delay between transactions: {delay} seconds")
@@ -53,18 +57,22 @@ async def run_modules(module):
         logger.error("Количество ключей и проксей должно быть больше нуля!")
         return
 
+    # try:
     for key, proxy in zip(keys, proxies):
-        delay = random.randint(*DELAY_BETWEEN_ACCOUNTS)
-        logger.info(f"Delay between accounts: {delay} seconds")
-        await asyncio.sleep(delay)
-
+        # try:
+        logger.info(key)
         address = get_address_by_key(key)
         task = asyncio.create_task(run_module_multiple_times(module=module, proxy=proxy, key=key, address=address))
         tasks.append(task)
-
+        # except Exception as e:
+        #     logger.error(f"Error: {e}")
     await asyncio.gather(*tasks)
+    # except Exception as e:
+    #     logger.error(f"Error: {e}")
+    #     raise e
 
-@logger.catch
+
+# @logger.catch
 def main():
     try:
         while True:
@@ -84,7 +92,6 @@ def main():
                 asyncio.run(run_modules(module=send_to))
             elif answer == 'exit':
                 sys.exit()
-
 
     except KeyboardInterrupt:
         cprint(f'\nЧтобы выйти нажмите <ctrl + C>', color='light_yellow')

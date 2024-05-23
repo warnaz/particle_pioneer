@@ -39,9 +39,9 @@ class TwoCaptcha:
         response = await self.client.make_request(method="POST", url=url, json=payload)
         logger.info(response )
 
-        if not response['errorId']:
-            return response['taskId']
-        raise Exception('Bad request to 2Captcha(Create Task)')
+        if response.get('errorId', None):
+            raise Exception('Bad request to 2Captcha(Create Task)')
+        return response.get('taskId', None)
 
     async def get_captcha_key(self, task_id):
         url = 'https://api.2captcha.com/getTaskResult'
@@ -56,7 +56,7 @@ class TwoCaptcha:
         while True:
             response = await self.client.make_request(method="POST", url=url, json=payload)
 
-            if response['status'] == 'ready':
+            if response.get('status', None) == 'ready':
                 return response['solution']['token']
 
             total_time += 5
