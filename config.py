@@ -15,9 +15,9 @@ MAC_KEY = 'iEQmWtT1wQBXTdgaP5XyQRqijyP2CfYdzWy6x2bY'
 DEVICE_ID = '5ee1686a-697f-4cde-a816-8937fb5ebbc7'
 
 
-DELAY_BETWEEN_ACCOUNTS = (30, 100)
+DELAY_BETWEEN_ACCOUNTS = (10, 50)
 DELAY_BETWEEN_SEND_TRANSACTION = (10, 50)
 
-TWO_CAPTCHA_API_KEY = os.getenv("TWO_API_KEY")
+TWO_CAPTCHA_API_KEY = os.getenv("TWO_API")
 
 sepolia_optimism_rpc = 'https://optimism-sepolia.blockpi.network/v1/rpc/public'

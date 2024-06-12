@@ -21,6 +21,6 @@ async def send_to(proxy, private_key, address):
 #     await universal_account.send_from_universal_acccount()
 
 
-async def check_in(client: Client):
-    daily_task = DailyTask(client)
+async def check_in(proxy, private_key, address):
+    daily_task = DailyTask(Client(proxy=proxy, private_key=private_key, address=address))
     await daily_task.daily_check_in()

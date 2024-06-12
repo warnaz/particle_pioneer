@@ -1,12 +1,13 @@
+import os
 import random
 import asyncio
 import sys
 from loguru import logger
 from functions import send_to, check_in
 from client import Client
-from utils.helpers import get_address_by_key, get_keys_proxies
+from utils.helpers import get_address_by_key, get_data_for_module
 from utils.get_bearer_token import BearerToken
-from config import DELAY_BETWEEN_ACCOUNTS, DELAY_BETWEEN_SEND_TRANSACTION
+from config import DELAY_BETWEEN_ACCOUNTS, DELAY_BETWEEN_SEND_TRANSACTION, TWO_CAPTCHA_API_KEY
 from questionary import Choice, select
 from termcolor import cprint
 
@@ -16,11 +17,7 @@ logger.add("data/logs/logging.log", rotation="500 MB")
 
 async def run(module, proxy, key, address, client: Client = None):
     logger.info("RUN")
-    # try:
-    # await module(client)
     await module(proxy, key, address)
-    # finally:
-    #     await client.session.close()
 
 
 async def run_module_multiple_times(module, proxy, key, address):
@@ -48,7 +45,7 @@ async def run_module_multiple_times(module, proxy, key, address):
 
 async def run_modules(module):
     tasks = []
-    keys, proxies = get_keys_proxies()
+    keys, proxies, device_ids, mac_keys = get_data_for_module()
 
     if len(keys) != len(proxies):
         logger.error("Количество ключей и проксей должно быть одинаковое!")
@@ -57,19 +54,12 @@ async def run_modules(module):
         logger.error("Количество ключей и проксей должно быть больше нуля!")
         return
 
-    # try:
     for key, proxy in zip(keys, proxies):
-        # try:
         logger.info(key)
         address = get_address_by_key(key)
         task = asyncio.create_task(run_module_multiple_times(module=module, proxy=proxy, key=key, address=address))
         tasks.append(task)
-        # except Exception as e:
-        #     logger.error(f"Error: {e}")
     await asyncio.gather(*tasks)
-    # except Exception as e:
-    #     logger.error(f"Error: {e}")
-    #     raise e
 
 
 # @logger.catch

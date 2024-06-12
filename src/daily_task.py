@@ -4,6 +4,7 @@ import requests
 from eth_account import Account
 from loguru import logger
 from client import Client
+from utils.decorators import helper
 from utils.services import get_bearer_token, get_captcha_key
 from config import project_uuid, project_client_key, MAC_KEY, DEVICE_ID
 from utils.helpers import get_mac_info, get_params, get_send_operation_json, get_signature
@@ -14,6 +15,7 @@ class DailyTask:
     def __init__(self, client: Client) -> None:
         self.client = client
 
+    @helper
     async def daily_check_in(self):
         logger.info("Start to check in")
         mac_key, device_id = MAC_KEY, DEVICE_ID

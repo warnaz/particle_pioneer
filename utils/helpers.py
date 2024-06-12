@@ -76,18 +76,20 @@ def get_address_by_key(key):
     account = Account.from_key(key)
     return account.address
 
+def get_file_content(file_name):
+    with open(f'data/{file_name}', 'r') as f:
+        data = [line.strip() for line in f.readlines()]
 
-def get_keys_proxies():
-    keys = []
-    with open('data/keys.txt', 'r') as f:
-        keys = [line.strip() for line in f.readlines()]
+    return data
 
-    proxies = []
-    with open('data/proxies.txt', 'r') as f:
-        proxies = [line.strip() for line in f.readlines()]
-    
-    return keys, proxies
 
+def get_data_for_module():
+    keys = get_file_content('keys.txt')
+    proxies = get_file_content('proxies.txt')
+    device_ids = get_file_content('device_ids.txt')
+    mac_keys = get_file_content('mac_keys.txt')
+
+    return keys, proxies, device_ids, mac_keys
 
 
 def get_send_operation_json(capcha_key, user_ops, signature1, signature2):
