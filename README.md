@@ -1,5 +1,7 @@
 # Software for Pioneer Particle
 
+## The bot doesn't work. Go here: https://github.com/warnaz/Pioneer-Particle-testnet
+
 ### Установка проекта
 
 Клонируйте репозиторий с GitHub:
